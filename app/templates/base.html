@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureUPI | AI Fraud Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="glass-nav">
+        <div class="logo">
+            <i class="fas fa-shield-halved"></i>
+            <span>SecureUPI</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">Home</a>
+            {% if session.get('user') %}
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">Dashboard</a>
+            <a href="{{ url_for('payment') }}" class="{{ 'active' if request.endpoint == 'payment' }}">Payments</a>
+            <a href="{{ url_for('upload') }}" class="{{ 'active' if request.endpoint == 'upload' }}">Upload</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Admin Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container">
+            {% for category, message in messages %}
+            <div class="glass-card alert-{{ category }}" style="margin-bottom: 1rem; padding: 1rem;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <style>
+            .alert-success {
+                border-color: var(--success) !important;
+            }
+
+            .alert-danger {
+                border-color: var(--danger) !important;
+            }
+
+            .alert-warning {
+                border-color: #f59e0b !important;
+            }
+
+            .alert-info {
+                border-color: var(--accent) !important;
+            }
+        </style>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+        &copy; 2026 SecureUPI AI Systems. All Rights Reserved.
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

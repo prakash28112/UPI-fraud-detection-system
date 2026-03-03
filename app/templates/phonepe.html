@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 500px; padding-top: 2rem;">
+    <div
+        style="background: #eef2f5; border-radius: 30px; overflow: hidden; height: 800px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 8px solid #333;">
+        <!-- Phone Header -->
+        <div
+            style="background: #5f259f; height: 80px; padding: 1rem; display: flex; align-items: flex-end; justify-content: space-between; color: white;">
+            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                <a href="{{ url_for('payment') }}" style="color: white; font-size: 1.2rem; display: block;"><i
+                        class="fas fa-arrow-left"></i></a>
+                <span style="font-weight: 600; font-size: 1.1rem;">To Contact</span>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                <i class="fas fa-question-circle"></i>
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div style="padding: 1.5rem; height: calc(100% - 80px); display: flex; flex-direction: column;">
+            <div
+                style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <div
+                    style="width: 50px; height: 50px; background: #9c27b0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; font-weight: bold;">
+                    AS
+                </div>
+                <div>
+                    <h3 style="color: #333; margin: 0; font-size: 1rem;">Alice Smith</h3>
+                    <p style="color: #666; font-size: 0.8rem; margin: 0;">alicesmith@ybl</p>
+                </div>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <p style="color: #888; font-size: 0.9rem; margin-bottom: 1rem;">Transfer Amount</p>
+                <form id="payForm" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <div
+                        style="position: relative; width: 80%; display: flex; align-items: center; justify-content: center; background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                        <span style="font-size: 2rem; color: #5f259f; font-weight: bold; margin-right: 0.5rem;">₹</span>
+                        <input type="number" id="amount" name="amount" placeholder="Enter Amount"
+                            style="width: 100%; border: none; font-size: 2.2rem; color: #5f259f; font-weight: bold; outline: none; background: transparent; text-align: left;"
+                            required>
+                    </div>
+
+                    <div style="width: 80%; margin-top: 1.5rem;">
+                        <input type="text" id="note" placeholder="What's this for?"
+                            style="width: 100%; border: 1px solid #ddd; border-radius: 12px; padding: 0.8rem 1rem; font-size: 0.9rem; outline: none; background: white; color: #333;">
+                    </div>
+
+                    <input type="hidden" name="receiver" value="Alice Smith">
+                    <input type="hidden" name="method" value="PhonePe">
+
+                    <button type="submit" id="payBtn"
+                        style="background: #5f259f; color: white; border: none; border-radius: 12px; padding: 1.2rem; width: 80%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 2rem; transition: transform 0.2s; box-shadow: 0 4px 20px rgba(95,37,159,0.3);">
+                        SEND
+                    </button>
+                </form>
+            </div>
+
+            <div
+                style="background: white; border-radius: 20px 20px 0 0; padding: 1.5rem; margin: 0 -1.5rem -1.5rem; display: flex; align-items: center; gap: 1rem; border-top: 1px solid #eee;">
+                <div
+                    style="width: 35px; height: 35px; border: 1px solid #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-university" style="color: #555;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 0; color: #333; font-weight: 600; font-size: 0.9rem;">State Bank of India - 4321
+                    </p>
+                    <p style="margin: 0; color: #888; font-size: 0.75rem;">Check Balance</p>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+            </div>
+        </div>
+
+        <!-- PhonePe Result Overlay -->
+        <div id="resultOverlay"
+            style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #5f259f; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; padding: 2rem; color: white;">
+            <div id="statusIcon"
+                style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; font-size: 3rem;">
+            </div>
+            <h1 id="statusTitle" style="margin-bottom: 1rem; font-size: 1.8rem; font-weight: 800;"></h1>
+            <p id="statusDesc" style="color: rgba(255,255,255,0.8); margin-bottom: 2.5rem; line-height: 1.5;"></p>
+
+            <div id="txnMeta"
+                style="background: rgba(255,255,255,0.1); border-radius: 20px; width: 100%; padding: 1.5rem; margin-bottom: 3rem; display: none;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.8rem;">
+                    <span>Transaction ID</span>
+                    <span style="font-weight: 600;">TXN{{ range(100000, 999999) | random }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.8rem;">
+                    <span>Paid to</span>
+                    <span style="font-weight: 600;" id="txnReceiver"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Amount</span>
+                    <span style="font-weight: 800; font-size: 1.2rem;" id="txnAmount"></span>
+                </div>
+            </div>
+
+            <button onclick="window.location.reload()"
+                style="background: white; border: none; border-radius: 12px; padding: 1rem 3rem; font-weight: 800; color: #5f259f; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">Home</button>
+        </div>
+
+        <!-- PhonePe Processing -->
+        <div id="processingLoader"
+            style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 50;">
+            <div class="pe-loader"></div>
+            <p style="color: white; margin-top: 2rem; font-weight: 600; font-size: 1.2rem;">Authenticating
+                Transaction...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pe-loader {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #5f259f;
+        border-top-color: white;
+        border-radius: 50%;
+        animation: pe-spin 1s linear infinite;
+    }
+
+    @keyframes pe-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<script>
+    document.getElementById('payForm').onsubmit = function (e) {
+        e.preventDefault();
+        const payBtn = document.getElementById('payBtn');
+        const loader = document.getElementById('processingLoader');
+        const overlay = document.getElementById('resultOverlay');
+        const icon = document.getElementById('statusIcon');
+        const title = document.getElementById('statusTitle');
+        const desc = document.getElementById('statusDesc');
+        const meta = document.getElementById('txnMeta');
+
+        payBtn.disabled = true;
+        loader.style.display = 'flex';
+
+        const formData = new FormData(this);
+
+        fetch('/process_transaction', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+                overlay.style.display = 'flex';
+
+                if (data.error) {
+                    overlay.style.background = '#d32f2f';
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    title.innerText = 'Payment Timed Out';
+                    desc.innerText = data.error;
+                } else if (data.fraud) {
+                    overlay.style.background = '#ff9800';
+                    icon.innerHTML = '<i class="fas fa-shield-alt"></i>';
+                    title.innerText = 'Transaction Blocked';
+                    desc.innerText = `Our AI system detected high risk behavior from this transaction. We've stopped it to protect your account.`;
+                } else {
+                    overlay.style.background = '#5f259f';
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                    title.innerText = 'Transaction Successful';
+                    desc.innerText = `Money sent successfully to ${data.receiver}`;
+                    meta.style.display = 'block';
+                    document.getElementById('txnAmount').innerText = '₹' + data.amount;
+                    document.getElementById('txnReceiver').innerText = data.receiver;
+                }
+            });
+    };
+
+    document.getElementById('amount').focus();
+</script>
+{% endblock %}

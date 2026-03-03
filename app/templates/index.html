@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container hero-section animate-fade-in">
+    <h1 class="gradient-text">Advanced Fraud Identification <br> for UPI Transactions</h1>
+    <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem;">
+        Leveraging XGBoost machine learning algorithms to secure the digital payment ecosystem
+        with 98.2% accuracy and real-time monitoring.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Get Started</a>
+        <a href="#features" class="btn" style="border: 1px solid var(--glass-border);">Learn More</a>
+    </div>
+</div>
+
+<div class="container" id="features">
+    <div class="metrics-grid">
+        <div class="glass-card metric-card">
+            <i class="fas fa-bolt" style="font-size: 2rem; color: var(--accent); margin-bottom: 1rem;"></i>
+            <h3>Real-time Analysis</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.9rem;">Processing transaction streams
+                in milliseconds.</p>
+        </div>
+        <div class="glass-card metric-card">
+            <i class="fas fa-brain" style="font-size: 2rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+            <h3>XGBoost Powered</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.9rem;">Utilizing state-of-the-art
+                gradient boosting for precision.</p>
+        </div>
+        <div class="glass-card metric-card">
+            <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--success); margin-bottom: 1rem;"></i>
+            <h3>98.2% Accuracy</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.9rem;">Minimizing false positives for a
+                seamless user experience.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

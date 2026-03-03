@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h1 class="gradient-text" style="font-size: 2.5rem;">System Performance</h1>
+            <p style="color: var(--text-muted);">Model metrics and real-time fraud identification.</p>
+        </div>
+        <a href="{{ url_for('upload') }}" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Dataset</a>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="glass-card metric-card">
+            <div class="metric-value">{{ "%.2f"|format(metrics.accuracy * 100) }}%</div>
+            <div class="metric-label">Accuracy</div>
+        </div>
+        <div class="glass-card metric-card">
+            <div class="metric-value">{{ "%.2f"|format(metrics.precision * 100) }}%</div>
+            <div class="metric-label">Precision</div>
+        </div>
+        <div class="glass-card metric-card">
+            <div class="metric-value">{{ "%.2f"|format(metrics.recall * 100) }}%</div>
+            <div class="metric-label">Recall</div>
+        </div>
+        <div class="glass-card metric-card">
+            <div class="metric-value">{{ "%.2f"|format(metrics.f1 * 100) }}%</div>
+            <div class="metric-label">F1-Score</div>
+        </div>
+    </div>
+
+    <div class="glass-card" style="margin-top: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-bolt" style="color: var(--accent);"></i> Live Transaction
+            Test</h3>
+        <form id="predictForm" class="metrics-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label>Step</label>
+                <input type="number" name="step" value="1">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select name="type">
+                    <option value="PAYMENT">PAYMENT</option>
+                    <option value="TRANSFER">TRANSFER</option>
+                    <option value="CASH_OUT">CASH_OUT</option>
+                    <option value="CASH_IN">CASH_IN</option>
+                    <option value="DEBIT">DEBIT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Amount (₹)</label>
+                <input type="number" name="amount" value="5000">
+            </div>
+            <div class="form-group">
+                <label>Old Balance Org</label>
+                <input type="number" name="oldbalanceOrg" value="10000">
+            </div>
+            <div class="form-group">
+                <label>New Balance Orig</label>
+                <input type="number" name="newbalanceOrig" value="5000">
+            </div>
+            <div class="form-group">
+                <label>Old Balance Dest</label>
+                <input type="number" name="oldbalanceDest" value="0">
+            </div>
+            <div class="form-group">
+                <label>New Balance Dest</label>
+                <input type="number" name="newbalanceDest" value="5000" style="grid-column: span 3;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="grid-column: span 3;">Run Detection</button>
+        </form>
+
+        <div id="result" style="margin-top: 2rem; display: none;" class="animate-fade-in">
+            <div id="resultContent" class="glass-card"
+                style="background: rgba(15, 23, 42, 0.8); text-align: center; padding: 1.5rem;">
+                <!-- Result injected here -->
+            </div>
+        </div>
+    </div>
+    <!-- Recent Transactions Section -->
+    <div class="glass-card animate-fade-in" style="margin-top: 2rem; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3>Recent Transactions</h3>
+            <a href="{{ url_for('payment') }}" class="btn btn-primary"
+                style="padding: 0.5rem 1rem; font-size: 0.8rem;">New Payment</a>
+        </div>
+
+        <div class="table-responsive">
+            <table style="width: 100%; border-collapse: collapse; color: var(--text-light);">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--glass-border); text-align: left;">
+                        <th style="padding: 1rem;">Receiver</th>
+                        <th style="padding: 1rem;">Amount</th>
+                        <th style="padding: 1rem;">Method</th>
+                        <th style="padding: 1rem;">Status</th>
+                        <th style="padding: 1rem;">AI Risk</th>
+                        <th style="padding: 1rem;">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if transactions %}
+                    {% for txn in transactions %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem;">{{ txn.receiver }}</td>
+                        <td style="padding: 1rem; font-weight: 600;">₹{{ txn.amount }}</td>
+                        <td style="padding: 1rem;"><span
+                                style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 4px;">{{
+                                txn.method }}</span></td>
+                        <td style="padding: 1rem;">
+                            {% if txn.is_fraud %}
+                            <span style="color: #ff4d4d;"><i class="fas fa-times-circle"></i> Fraud Blocked</span>
+                            {% else %}
+                            <span style="color: #00ff88;"><i class="fas fa-check-circle"></i> Success</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div
+                                    style="height: 6px; width: 60px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                    <div
+                                        style="height: 100%; width: {{ txn.probability * 100 }}%; background: {% if txn.probability > 0.5 %}#ff4d4d{% else %}#00ff88{% endif %};">
+                                    </div>
+                                </div>
+                                <span style="font-size: 0.8rem;">{{ (txn.probability * 100) | round(1) }}%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 1rem; font-size: 0.8rem; color: var(--text-muted);">{{
+                            txn.timestamp[:19].replace('T', ' ') }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                            <i class="fas fa-receipt"
+                                style="font-size: 2rem; margin-bottom: 1rem; display: block; opacity: 0.5;"></i>
+                            No transactions yet. <a href="{{ url_for('payment') }}" style="color: var(--accent);">Make
+                                your first payment</a>.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('predictForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const resultDiv = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
+
+        resultDiv.style.display = 'block';
+        resultContent.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing...';
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                resultContent.innerHTML = `<span style="color: var(--danger)">${data.error}</span>`;
+                return;
+            }
+
+            const isFraud = data.fraud;
+            resultContent.innerHTML = `
+            <div style="font-size: 1.5rem; color: ${isFraud ? 'var(--danger)' : 'var(--success)'}; font-weight: 800; margin-bottom: 0.5rem;">
+                ${isFraud ? '<i class="fas fa-triangle-exclamation"></i> FRAUD DETECTED' : '<i class="fas fa-circle-check"></i> LEGITIMATE TRANSACTION'}
+            </div>
+            <div style="color: var(--text-muted)">Probability: ${(data.probability * 100).toFixed(2)}%</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem;">Timestamp: ${data.timestamp}</div>
+        `;
+        } catch (err) {
+            resultContent.innerHTML = '<span style="color: var(--danger)">Connection error</span>';
+        }
+    };
+</script>
+{% endblock %}

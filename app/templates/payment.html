@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 800px; padding-top: 4rem;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h2 class="gradient-text">Choose Your Payment Interface</h2>
+        <p style="color: var(--text-muted);">Simulate real UPI transactions with GPay and PhonePe styles</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <!-- GPay Card -->
+        <a href="{{ url_for('gpay') }}" class="glass-card"
+            style="text-decoration: none; text-align: center; transition: transform 0.3s ease; padding: 2.5rem;">
+            <div
+                style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay"
+                    style="width: 50px;">
+            </div>
+            <h3 style="color: white; margin-bottom: 0.5rem;">Google Pay</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Modern, clean, and secure interface</p>
+            <div style="margin-top: 1.5rem; color: var(--accent); font-weight: 600;">Open App <i
+                    class="fas fa-arrow-right"></i></div>
+        </a>
+
+        <!-- PhonePe Card -->
+        <a href="{{ url_for('phonepe') }}" class="glass-card"
+            style="text-decoration: none; text-align: center; transition: transform 0.3s ease; padding: 2.5rem;">
+            <div
+                style="background: #5f259f; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/PhonePe_Logo.svg" alt="PhonePe"
+                    style="width: 45px; filter: brightness(0) invert(1);">
+            </div>
+            <h3 style="color: white; margin-bottom: 0.5rem;">PhonePe</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Rich UI with intuitive payment flow</p>
+            <div style="margin-top: 1.5rem; color: #a17fe0; font-weight: 600;">Open App <i
+                    class="fas fa-arrow-right"></i></div>
+        </a>
+
+        <!-- Razorpay Real Gateway -->
+        <div class="glass-card" style="text-align: center; padding: 2.5rem; border-color: #3399cc;">
+            <div
+                style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <img src="https://razorpay.com/favicon.png" alt="Razorpay" style="width: 40px;">
+            </div>
+            <h3 style="color: white; margin-bottom: 0.5rem;">Real Gateway</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Razorpay Standard Checkout (Real UPI/Card)</p>
+
+            <input type="number" id="realAmount" placeholder="Amount (₹)"
+                style="margin-top: 1rem; margin-bottom: 1rem; width: 100%; border-radius: 8px;">
+
+            <button onclick="payWithRazorpay()" id="rzp-button" class="btn"
+                style="background: #3399cc; color: white; width: 100%; font-weight: 800;">
+                PAY NOW
+            </button>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function payWithRazorpay() {
+            const amount = document.getElementById('realAmount').value;
+            if (!amount || amount <= 0) {
+                alert("Please enter a valid amount");
+                return;
+            }
+
+            const btn = document.getElementById('rzp-button');
+            btn.disabled = true;
+            btn.innerText = "Initializing Security Check...";
+
+            // 1. Create Order + Run AI Check
+            const formData = new FormData();
+            formData.append('amount', amount);
+
+            fetch('/create_order', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerText = "PAY NOW";
+
+                    if (data.fraud_blocked) {
+                        alert(`AI SECURITY ALERT: ${data.message}\nRisk Score: ${(data.risk * 100).toFixed(1)}%`);
+                        return;
+                    }
+
+                    if (data.error) {
+                        alert("Error: " + data.error);
+                        return;
+                    }
+
+                    // 2. Open Razorpay Checkout
+                    const options = {
+                        "key": data.key_id,
+                        "amount": data.amount * 100,
+                        "currency": "INR",
+                        "name": "SecureUPI AI",
+                        "description": "Secure Real-time Transaction",
+                        "order_id": data.order_id,
+                        "handler": function (response) {
+                            // 3. Verify Payment
+                            fetch('/verify_payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    order_id: data.order_id,
+                                    payment_id: response.razorpay_payment_id,
+                                    signature: response.razorpay_signature
+                                })
+                            })
+                                .then(res => res.json())
+                                .then(verifyData => {
+                                    if (verifyData.status === 'success') {
+                                        window.location.href = "/dashboard";
+                                    } else {
+                                        alert("Verification Failed!");
+                                    }
+                                });
+                        },
+                        "prefill": {
+                            "name": data.user,
+                            "email": "test@secureupi.ai"
+                        },
+                        "theme": { "color": "#3399cc" }
+                    };
+                    const rzp1 = new Razorpay(options);
+                    rzp1.open();
+                })
+                .catch(error => {
+                    alert("An error occurred: " + error);
+                    btn.disabled = false;
+                    btn.innerText = "PAY NOW";
+                });
+        }
+    </script>
+
+    <style>
+        .glass-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+        }
+    </style>
+</div>
+{% endblock %}

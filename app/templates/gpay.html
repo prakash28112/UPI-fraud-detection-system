@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 500px; padding-top: 2rem;">
+    <div
+        style="background: white; border-radius: 30px; overflow: hidden; height: 800px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 8px solid #333;">
+        <!-- Phone Header -->
+        <div
+            style="background: #e8f0fe; height: 120px; padding: 1.5rem 1rem 0; display: flex; align-items: start; gap: 1rem;">
+            <a href="{{ url_for('payment') }}" style="color: #444; font-size: 1.2rem; margin-top: 5px;"><i
+                    class="fas fa-arrow-left"></i></a>
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay"
+                        style="height: 24px;">
+                </div>
+            </div>
+            <img src="https://ui-avatars.com/api/?name=Admin&background=4285f4&color=fff"
+                style="width: 32px; height: 32px; border-radius: 50%;">
+        </div>
+
+        <div
+            style="background: white; margin-top: -30px; border-radius: 30px 30px 0 0; padding: 2rem 1.5rem; height: calc(100% - 120px + 30px); color: #333;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div
+                    style="width: 70px; height: 70px; background: #ea4335; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
+                    JD
+                </div>
+                <h2 style="font-size: 1.4rem; color: #1a1a1b; margin-bottom: 0.2rem;">John Doe</h2>
+                <p style="color: #5f6368; font-size: 0.9rem;">+91 98765 43210</p>
+                <div
+                    style="display: inline-block; background: #f1f3f4; padding: 0.3rem 1rem; border-radius: 20px; margin-top: 0.5rem; font-size: 0.8rem; font-weight: 500;">
+                    johndoe@okaxis</div>
+            </div>
+
+            <form id="payForm"
+                style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; width: 100%;">
+                <div style="position: relative; width: 100%; text-align: center;">
+                    <span
+                        style="position: absolute; left: 50%; transform: translateX(-150%); bottom: 10px; font-size: 1.5rem; color: #1a1a1b;">₹</span>
+                    <input type="number" id="amount" name="amount" placeholder="0"
+                        style="width: 100%; border: none; border-bottom: 2px solid #e0e0e0; font-size: 3.5rem; text-align: center; color: #1a1a1b; font-weight: bold; background: transparent; padding: 1rem 0; outline: none; transition: border-color 0.3s;"
+                        required>
+                </div>
+
+                <input type="text" id="note" placeholder="Add a note"
+                    style="border: 1px solid #e0e0e0; border-radius: 20px; padding: 0.6rem 1.5rem; width: 80%; font-size: 0.9rem; outline: none;">
+
+                <input type="hidden" name="receiver" value="John Doe">
+                <input type="hidden" name="method" value="Google Pay">
+
+                <button type="submit" id="payBtn"
+                    style="background: #4285f4; color: white; border: none; border-radius: 300px; padding: 1rem 4rem; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 2rem; box-shadow: 0 4px 10px rgba(66,133,244,0.3); transition: transform 0.2s, background 0.2s;">
+                    Proceed to pay
+                </button>
+            </form>
+
+            <div id="resultOverlay"
+                style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; padding: 2rem; border-radius: 30px;">
+                <div id="statusIcon"
+                    style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; font-size: 2rem; color: white;">
+                </div>
+                <h2 id="statusTitle" style="margin-bottom: 0.5rem; color: #333;"></h2>
+                <p id="statusDesc" style="color: #666; margin-bottom: 2rem;"></p>
+                <div id="txnMeta" style="border-top: 1px dashed #ddd; width: 80%; padding-top: 1.5rem; display: none;">
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;">
+                        <span>To</span>
+                        <span style="color: #333; font-weight: 600;">John Doe</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;">
+                        <span>Amount</span>
+                        <span style="color: #333; font-weight: 600;" id="txnAmount"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #888;">
+                        <span>Time</span>
+                        <span style="color: #333; font-weight: 600;" id="txnTime"></span>
+                    </div>
+                </div>
+                <button onclick="window.location.reload()"
+                    style="background: #f1f3f4; border: none; border-radius: 20px; padding: 0.8rem 2rem; margin-top: 3rem; font-weight: 600; color: #5f6368; cursor: pointer;">Done</button>
+            </div>
+        </div>
+
+        <!-- Processing Animation -->
+        <div id="processingLoader"
+            style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(66,133,244,0.1); backdrop-filter: blur(5px); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 50;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #4285f4; margin-bottom: 1rem;"></i>
+            <p style="color: #4285f4; font-weight: 600;">Contacting UPI Engine...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('payForm').onsubmit = function (e) {
+        e.preventDefault();
+        const payBtn = document.getElementById('payBtn');
+        const loader = document.getElementById('processingLoader');
+        const overlay = document.getElementById('resultOverlay');
+        const icon = document.getElementById('statusIcon');
+        const title = document.getElementById('statusTitle');
+        const desc = document.getElementById('statusDesc');
+        const meta = document.getElementById('txnMeta');
+
+        const amountValue = document.getElementById('amount').value;
+
+        payBtn.disabled = true;
+        loader.style.display = 'flex';
+
+        const formData = new FormData(this);
+
+        fetch('/process_transaction', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+                overlay.style.display = 'flex';
+
+                if (data.error) {
+                    icon.style.background = '#ea4335';
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    title.innerText = 'Payment Failed';
+                    desc.innerText = data.error;
+                } else if (data.fraud) {
+                    icon.style.background = '#ea4335';
+                    icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    title.innerText = 'Security Alert!';
+                    title.style.color = '#ea4335';
+                    desc.innerText = `This transaction has been flagged as suspicious (Risk: ${(data.probability * 100).toFixed(1)}%). Payment blocked for your security.`;
+                    desc.style.color = '#7a3e3e';
+                } else {
+                    icon.style.background = '#34a853';
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                    title.innerText = 'Payment Successful';
+                    desc.innerText = 'The money has been sent to John Doe\'s account';
+                    meta.style.display = 'block';
+                    document.getElementById('txnAmount').innerText = '₹' + data.amount;
+                    document.getElementById('txnTime').innerText = data.timestamp;
+                }
+            });
+    };
+
+    document.getElementById('amount').focus();
+</script>
+{% endblock %}

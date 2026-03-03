@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 600px; margin-top: 5rem;">
+    <div class="glass-card" style="text-align: center;">
+        <i class="fas fa-file-csv" style="font-size: 3rem; color: var(--accent); margin-bottom: 1.5rem;"></i>
+        <h2 style="margin-bottom: 1rem;">Upload Transaction Dataset</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">
+            Provide a CSV file containing historical UPI transactions to update the fraud detection model.
+        </p>
+
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+            <div style="border: 2px dashed var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; transition: border-color 0.3s;"
+                onmouseover="this.style.borderColor='var(--primary)'"
+                onmouseout="this.style.borderColor='var(--glass-border)'">
+                <input type="file" name="file" accept=".csv" required style="display: none;" id="fileInput"
+                    onchange="document.getElementById('fileName').innerText = this.files[0].name">
+                <label for="fileInput" style="cursor: pointer;">
+                    <div id="fileName" style="font-weight: 600; font-size: 1.1rem; color: var(--text);">Click to select
+                        CSV</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Maximum file size:
+                        50MB</div>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Upload and Process</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

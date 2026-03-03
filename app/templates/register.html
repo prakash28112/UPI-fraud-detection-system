@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 500px; margin-top: 3rem;">
+    <div class="glass-card">
+        <h2 style="margin-bottom: 2rem; text-align: center;">Trainer Registration</h2>
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="fullname" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="johndoe" required>
+            </div>
+            <div class="form-group">
+                <label>Email ID</label>
+                <input type="email" name="emailid" placeholder="john@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Contact No</label>
+                <input type="text" name="contact" placeholder="9876543210" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Register</button>
+        </form>
+        <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.82rem;">
+            Already have an account? <a href="{{ url_for('login') }}" style="color: var(--accent);">Login here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
